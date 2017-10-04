@@ -110,8 +110,8 @@ function Calendar(options) {
                 return false;
             }
             val = this.value.toString().split(' ');
-            if (val.length == 1 && isNaN(parseInt(val[0]))) {
-                this.value = '';
+            if (val.length == 1) {
+                this.value = isNaN(parseInt(val[0]))? '' : parseInt(val[0]);
                 return false;
             }
             if (val.length == 2 && val[1].length > 0) {
@@ -119,6 +119,8 @@ function Calendar(options) {
                 if (result && result.length == 1) {
                     val[val.length - 1] = result[0].replace(',', '');
                     this.value = val.join(' ') + ' ';
+                } else if(result === null) {
+                    this.value = val[0] + ' ' + val[1].split('').slice(0, -1).join('');
                 }
             }
             if (val.length == 3 && isNaN(parseInt(val[2]))) {
