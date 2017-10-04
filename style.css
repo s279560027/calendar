@@ -94,11 +94,11 @@ body {
     text-decoration: none;
     color: #555;
 }
-#calendar-grid > div:hover .edit-link {
+#calendar-grid > div.active:hover .edit-link {
     display: block;
 }
 #calendar-grid > div.active,
-#calendar-grid > div:hover {
+#calendar-grid > div.active:hover {
     background: #c5e6fe;
     cursor: pointer;
 }
@@ -232,4 +232,14 @@ button:focus {
 }
 .popup textarea {
     height: 100px;
+}
+
+.popup:after {
+    content: " ";
+    position: absolute;
+    top: -20px;
+    left: 30px;
+    border: 10px solid transparent;
+    border-bottom: 10px solid #fff;
+    z-index: 10;
 }

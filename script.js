@@ -8,7 +8,7 @@ function Calendar(options) {
         var months = [];
         if (months.length == 0) {
             for (var i = 1; i <= 12; i++) {
-                months.push((new Date(0, i, 1)).toLocaleString('ru', {month: 'long'}));
+                months.push((new Date(0, i, 1)).toLocaleString('ru', {day: 'numeric', month: 'long'}).split(' ')[1]);
             }
         }
         return months;
@@ -19,6 +19,7 @@ function Calendar(options) {
     }
 
     var dialog = function (target, options) {
+        var el;
         if (dialogElement && typeof(dialogElement['parentElement']) != "undefined" && dialogElement.parentElement) {
             return false;
         }
@@ -39,10 +40,12 @@ function Calendar(options) {
 
         dialogElement.style.left = options.left;
         dialogElement.style.top = options.top;
+        if (el = dialogElement.querySelector('input[type="text"]'))
+            el.focus();
     }
 
     var dialogClose = function () {
-        if (typeof dialogElement != "undefined" && dialogElement) {
+        if (typeof dialogElement != "undefined" && typeof dialogElement.parentElement != "undefined") {
             dialogElement.parentElement.removeChild(dialogElement);
         }
     }
@@ -76,19 +79,20 @@ function Calendar(options) {
             var months = getMonthsNames();
             var coords = getCoords(options.add);
             var html = '<input id="eventParams" type="text" placeholder="1 сентябрь 2017, День Рождения" /><button id="createEvent" type="button">Создать</button>';
-            var dialogForm = new dialog(options.add, {html: html, left: coords.left, top: coords.bottom + 10});
+            dialog(options.add, {html: html, left: coords.left, top: coords.bottom + 15});
             document.getElementById('createEvent').addEventListener('click', handlers.createEvent.bind(document.getElementById('eventParams')));
             document.getElementById('eventParams').addEventListener('keyup', handlers.typeEventField.bind(document.getElementById('eventParams')));
         },
         createEvent: function () {
             var date, eventKey, value;
-            value = this.value.split(',');
-            date = parseDate(value[0]);
+            value = this.value.split(/,| /ig);
+            date = parseDate(value.splice(0, 3).join(' '));
             if (date) {
                 eventKey = date.getTime().toString();
                 events[eventKey] = {
                     date: date,
-                    title: value.length > 1 ? value[1] : '',
+                    title: value.length > 0 ? value.join(' ') : '',
+                    title: value.length > 0 ? value.join(' ') : '',
                     members: '',
                     desc: '',
                 }
@@ -136,7 +140,7 @@ function Calendar(options) {
                     break;
                 }
                 if (gridChild.className.indexOf('edit-link') !== -1) {
-                    showEditForm(gridChild.id);
+                    showEditForm(gridChild.parentElement.id);
                     break;
                 }
                 gridChild = gridChild.parentElement;
@@ -144,17 +148,17 @@ function Calendar(options) {
         },
         saveEvent: function () {
             if (typeof events[this.id] != "undefined") {
-                events[this.id].title = typeof this.title.value != undefined?: '',
-                    events[this.id].date = typeof this.date.value != undefined?: '',
-                    events[this.id].members = typeof this.members.value != undefined?: '',
-                    events[this.id].desc = typeof this.target.value != undefined?: '';
+                events[this.id].title = typeof this.title.value != undefined ? this.title.value : '',
+                    events[this.id].date = typeof this.date.value != undefined ? this.date.value : '',
+                    events[this.id].members = typeof this.members.value != undefined ? this.members.value : '',
+                    events[this.id].desc = typeof this.desc.value != undefined ? this.desc.value : '';
             }
             update();
             dialogClose();
         },
         saveDesc: function () {
             if (typeof events[this.id] != "undefined") {
-                events[this.id].desc = typeof this.desc.value != undefined? this.desc.value : '';
+                events[this.id].desc = typeof this.desc.value != "undefined" ? this.desc.value : '';
             }
             update();
             dialogClose();
@@ -165,6 +169,10 @@ function Calendar(options) {
             }
             dialogClose();
             update();
+        },
+        escapePressed: function (e) {
+            if (e.which == 27)
+                dialogClose();
         }
     }
 
@@ -182,7 +190,11 @@ function Calendar(options) {
         if (typeof events[id] != "undefined") {
             var event = events[id];
             document.getElementById('event-edit-title').value = event.title
-            document.getElementById('event-edit-date').value = event.date;
+            document.getElementById('event-edit-date').value = event.date.toLocaleString('ru', {
+                day: 'numeric',
+                year: 'numeric',
+                month: 'long'
+            })
             document.getElementById('event-edit-members').value = event.members;
             document.getElementById('event-edit-desc').value = event.desc;
         }
@@ -199,8 +211,7 @@ function Calendar(options) {
     }
 
     var showViewForm = function (id) {
-        console.log(id);
-        html = '<div id="event-title" class="event-title"></div><br /><div id="event-date"></div><br /><strong>Участники:</strong><br /><div id="event-members"></div> \
+        html = '<div id="event-title" class="event-title"></div><br /><div id="event-date"></div><br /><strong>Участники:</strong><span id="event-members"></span> \
                     <textarea id="event-edit-desc"></textarea> \
                     <div> \
                     <button type="button" id="view-event-done">Готово</button> \
@@ -212,9 +223,11 @@ function Calendar(options) {
 
         if (typeof events[id] != "undefined") {
             var event = events[id];
-            console.log(document.getElementById('event-title'));
             document.getElementById('event-title').textContent = event.title
-            document.getElementById('event-date').textContent = event.date;
+            document.getElementById('event-date').textContent = event.date.toLocaleString('ru', {
+                year: 'numeric',
+                month: 'short'
+            });
             document.getElementById('event-members').textContent = event.members;
             document.getElementById('event-edit-desc').value = event.desc;
         }
@@ -276,7 +289,8 @@ function Calendar(options) {
     options.nav.right.addEventListener('click', handlers.navRightClick.bind(this));
     options.nav.current.addEventListener('click', handlers.navCurrentClick.bind(this));
     options.add.addEventListener('click', handlers.add.bind(this));
-    options.grid.addEventListener('click', handlers.grid.bind(grid), true);
+    options.grid.addEventListener('click', handlers.grid.bind(grid));
+    window.addEventListener('keyup', handlers.escapePressed.bind(this));
 
     var update = function () {
         setNavLabel();
