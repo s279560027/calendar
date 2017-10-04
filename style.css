@@ -234,7 +234,7 @@ button:focus {
     height: 100px;
 }
 
-.popup:after {
+.actions .popup:after {
     content: " ";
     position: absolute;
     top: -20px;
