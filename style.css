@@ -54,6 +54,7 @@ body {
     margin: auto;
     position: relative;
     min-width: 850px;
+    max-width: 1280px;
 }
 #calendar-grid {
     display: flex;
@@ -200,7 +201,7 @@ button:focus {
 }
 
 .popup {
-    position: absolute;
+    position: fixed;
     padding: 20px;
     background: #fff;
     border-radius: 5px;
